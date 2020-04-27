@@ -1,0 +1,4 @@
+*.o
+*.exe
+
+/data_orig.txt
