@@ -5,10 +5,10 @@
 #include "windows.h"
 
 int player_Faint[2], current_Mon[2]; //[0] = Player 1, //[1] = Player 2. player loses when number becomes 6
-int players_Mons[12], Mon_HPleft[12], Mon_HP_Orig[12], Mon_HP[12], Mon_ATK[12], Mon_DEF[12], Mon_SPA[12], Mon_SPD[12], Mon_SPE[12], Mon_Type1[12], Mon_Type2[12];
+int players_Mons[12], Mon_HPleft[12], Mon_HP[12], Mon_ATK[12], Mon_DEF[12], Mon_SPA[12], Mon_SPD[12], Mon_SPE[12], Mon_Type1[12], Mon_Type2[12];
 char Mon_Names[12][11], Mon_Ascii[12][4][14]; //Mon_Names=10 characters max; Mon_Ascii=12 characters per line, 4 lines
 int Mon_SpriteColors[12][4];
-int knockout_Flag = 2; //0 or 1 = correspondent player mon got trashed out, 2 = regular turn
+int knockout_Flag; //0 or 1 = correspondent player mon got trashed out, 2 = regular turn
 int type_Chart[18][18];
 HANDLE color_Text;
 
@@ -260,7 +260,7 @@ void attackMon(int atkingMon, int defendingMon)
         printf("\nIT'S SUPER EFFECTIVE!");
     else if (typeMult < 1)
         printf("\nIt's not very effective...");
-    //printf("\n%f", typeMult); tests ultiplier
+    //printf("\n%f", typeMult); tests multiplier
     printf("\n%s takes %d damage.", Mon_Names[current_Mon[defendingMon]], damageInt);
     if (knockout_Flag != 2)
         printf("\n%s has fainted!", Mon_Names[current_Mon[defendingMon]]);
@@ -284,6 +284,13 @@ void randomSend(int pointer)
     //todo make this less awful
 }
 
+void knockoutMon(int faintedMon)
+{
+    knockout_Flag = faintedMon;
+    player_Faint[knockout_Flag]++;
+    randomSend(knockout_Flag);
+}
+
 void attackTurn()
 {
     if ((knockout_Flag) == 2)
@@ -304,18 +311,10 @@ void attackTurn()
         {
             attackMon(slowerMon, fasterMon);
             if (Mon_HPleft[current_Mon[fasterMon]] == 0) //If fainted
-            {
-                knockout_Flag = fasterMon;
-                player_Faint[knockout_Flag]++;
-                randomSend(knockout_Flag);
-            }
+                knockoutMon(fasterMon);
         }
         else
-        {
-            knockout_Flag = slowerMon;
-            player_Faint[knockout_Flag]++;
-            randomSend(knockout_Flag);
-        }
+            knockoutMon(slowerMon);
     }
     else
     {
@@ -422,7 +421,7 @@ void dataAssign(int position) //0 = player 1, 6 = player 2
                 dataset[dataCounter] = getc(txtData);
             //HP Formula = ({[IV+2*Base Stat+([EVs]/4)+100] * Level}/100)+Level+10, there is no IV/EV, level is 100
             Mon_HP[monCounter] = 100*(dataset[0] - '0') + 10*(dataset[1] - '0') + (dataset[2] - '0');
-            Mon_HPleft[monCounter] = Mon_HP[monCounter] = Mon_HP_Orig[monCounter] = 2*Mon_HP[monCounter]+110;
+            Mon_HPleft[monCounter] = Mon_HP[monCounter] = 2*Mon_HP[monCounter]+110;
 
             for (int dataCounter = 0; dataCounter < 3; dataCounter++) //Assign ATK
                 dataset[dataCounter] = getc(txtData);
@@ -463,7 +462,7 @@ void dataAssign(int position) //0 = player 1, 6 = player 2
         for (int monCounter = position; monCounter < position + 6; monCounter++)
         {
             SetConsoleTextAttribute(color_Text, 15);
-            printf("%s", Mon_Names[monCounter], Mon_HP[monCounter]);
+            printf("%s", Mon_Names[monCounter]);
             SetConsoleTextAttribute(color_Text, 7);
             printf(", HP %d, ", Mon_HP[monCounter]);
 
@@ -576,7 +575,6 @@ void monsGetData()
 void typeChart()
 {
     FILE *txtData = fopen("typeeffectiv.txt", "r");
-    //int temp = atkType * 19 + defType; //19 = characteres in each line counting '\n'
     char c;
     int xAxis = 0, yAxis = 0;
     for (int counter = 0; counter != 341; counter++) //341 = 19 * 18 - 1
@@ -597,7 +595,7 @@ void typeChart()
     fclose(txtData);
 }
 
-main()
+void main()
 {
     srand(time(NULL)); //For Random generation
     color_Text = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -629,6 +627,8 @@ main()
         playersGetMons();
         monsGetData();
         char player_Bet = betChoice();
+        knockout_Flag = 2;
+        player_Faint[0] = player_Faint[1] = 0;
 
         printf("\nBATTLE WILL BEGIN SOON. GOOD LUCK");
         //Sleep(2000);
@@ -640,7 +640,6 @@ main()
         printf("\nPlayer 1 sent out %s!\nPlayer 2 sent out %s!", Mon_Names[current_Mon[0]], Mon_Names[current_Mon[1]]);
         getch();
 
-        player_Faint[0] = player_Faint[1] = 0;
         while(player_Faint[0] != 6 && player_Faint[1] != 6) //while both players have mons left
             attackTurn();
 
@@ -670,6 +669,9 @@ main()
             if (exit != '1' && exit != '2')
                 printf("Invalid choice.");
         }while (exit != '1' && exit != '2');
+
+        if (exit == '1')
+            system("cls");
 
     }while (exit == '1');
 
