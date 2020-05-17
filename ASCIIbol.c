@@ -4,9 +4,9 @@
 #include "string.h"
 #include "windows.h"
 
-int player_Faint[2], current_Mon[2]; //[0] = Player 1, //[1] = Player 2. player loses when number becomes 6
+int player_Faint[2], current_Mon[2]; //[0] = Player 1, //[1] = Player 2. player loses when player_Faint becomes 6
 int players_Mons[12], Mon_HPleft[12], Mon_HP[12], Mon_ATK[12], Mon_DEF[12], Mon_SPA[12], Mon_SPD[12], Mon_SPE[12], Mon_Type1[12], Mon_Type2[12];
-char Mon_Names[12][11], Mon_Ascii[12][4][14]; //Mon_Names=10 characters max; Mon_Ascii=12 characters per line, 4 lines
+char Mon_Names[12][11], Mon_Ascii[12][4][13]; //Mon_Names=10 characters max; Mon_Ascii=12 characters per line, 4 lines
 int Mon_SpriteColors[12][4];
 int knockout_Flag; //0 or 1 = correspondent player mon got trashed out, 2 = regular turn
 int type_Chart[18][18];
@@ -116,7 +116,8 @@ void printHPBar(int pointer) //prints the colored HP bar
             printf(" ");
         SetConsoleTextAttribute(color_Text, 7); //COLORLESS
     }
-    printf("\n");
+    if (pointer < 6 || Mon_HPleft[pointer] != Mon_HP[pointer]) //prevents double line skip
+        printf("\n");
 }
 
 void printHPVal(int HP) //example prints "100" or "  5"
@@ -160,6 +161,14 @@ void printASCII(int pointer)
             printf("%*s", 24, "");
         SetConsoleTextAttribute(color_Text, Mon_SpriteColors[pointer][temp]);
         printf("%s", Mon_Ascii[pointer][temp]);
+        /*'\s' is its own character, so the console cursor could make an additional line break for player 2's sprites
+        This workaround forces a line break for player 1 instead*/
+        if (pointer < 6)
+        {
+            int lenghtString = strlen(Mon_Ascii[pointer][temp]);
+            if (lenghtString == 12 && Mon_Ascii[pointer][temp][lenghtString - 1] != '\n')
+                printf("\n");
+        }
     }
     SetConsoleTextAttribute(color_Text, 7);
 }
@@ -538,22 +547,23 @@ void dataAssign(int position) //0 = player 1, 6 = player 2
             c = getc(asciiData);
 
         //ASCII SPRITE
-        char txtCharacter[2];
-        txtCharacter[1] = '\0';
         for (int temp = 0; temp < 4; temp++) //4 = 4 lines
         {
+            for (int erasePointer = 0; Mon_Ascii[monCounter][temp][erasePointer] != 0 && erasePointer < 12; erasePointer++) //cleans content for subsequent matches
+                Mon_Ascii[monCounter][temp][erasePointer] = 0;
+            char txtCharacter;
             strcpy(Mon_Ascii[monCounter][temp], "");
             int charlimit = 0;
             do
             {
-                txtCharacter[0] = getc(asciiData);
-                if (txtCharacter[0] == '\n' || charlimit < 12) //12 characters per line only
+                txtCharacter = getc(asciiData);
+                if (charlimit < 12) //12 characters per line only
                 {
-                    strcat(Mon_Ascii[monCounter][temp], txtCharacter);
+                    Mon_Ascii[monCounter][temp][charlimit] = txtCharacter;
                     charlimit++;
                 }
             }
-            while (txtCharacter[0] != '\n');
+            while (txtCharacter != '\n');
         }
         lineCounter+=5;
     }
@@ -605,7 +615,7 @@ void main()
     HANDLE winSizeHndl = GetStdHandle(STD_OUTPUT_HANDLE);
 
     COORD windowsBox;
-    windowsBox.X = 37;
+    windowsBox.X = 36;
     windowsBox.Y = 21;
 
     SMALL_RECT srctWindow;
