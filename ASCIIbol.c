@@ -407,55 +407,32 @@ void dataAssign(int position) //0 = player 1, 6 = player 2
         int lineCounter = 1;
         for (int monCounter = position; monCounter < position + 6; monCounter++)
         {
-            while (players_Mons[monCounter] != lineCounter) //Searches for Mon's data in the file
-            {
-                while((c = getc(txtData)) != '\n'){} //Line skip
-                lineCounter++;
-            }
+            fseek(txtData, ((players_Mons[monCounter] - 1) * 32), SEEK_SET);
 
-            char dataset[10];
+            fread(Mon_Names[monCounter], sizeof(char), 10, txtData);
+            for (int tempExclusion = 9; Mon_Names[monCounter][tempExclusion] == ' ' && tempExclusion != 0; tempExclusion--)
+                Mon_Names[monCounter][tempExclusion] = NULL;
 
-            strcpy(Mon_Names[monCounter], "");
-            for (int dataCounter = 0; dataCounter < 10; dataCounter++){ //Assign NAME
-                char txtCharacter[2]; //[2] is needed for strcat
-                txtCharacter[0] = getc(txtData);
-                if (txtCharacter[0] != ' ')
-                {
-                    txtCharacter[1] = '\0';
-                    strcat(Mon_Names[monCounter], txtCharacter);
-                }
-            }
+            char dataset[3];
 
-            for (int dataCounter = 0; dataCounter < 3; dataCounter++) //Assign HP
-                dataset[dataCounter] = getc(txtData);
-            //HP Formula = ({[IV+2*Base Stat+([EVs]/4)+100] * Level}/100)+Level+10, there is no IV/EV, level is 100
-            Mon_HP[monCounter] = 100*(dataset[0] - '0') + 10*(dataset[1] - '0') + (dataset[2] - '0');
-            Mon_HPleft[monCounter] = Mon_HP[monCounter] = 2*Mon_HP[monCounter]+110;
+            fread(dataset, sizeof(char), 3, txtData);
+            Mon_HPleft[monCounter] = Mon_HP[monCounter] = 2*atoi(dataset)+110;
 
-            for (int dataCounter = 0; dataCounter < 3; dataCounter++) //Assign ATK
-                dataset[dataCounter] = getc(txtData);
             //Other Stats Formula = [({[IV+2*Base Stat+([EVs]/4)+100] * Level}/100)+5]*nature, there is no IV/EV/nature, level is 100
-            Mon_ATK[monCounter] = 100*(dataset[0] - '0') + 10*(dataset[1] - '0') + (dataset[2] - '0');
-            Mon_ATK[monCounter] = 2*(Mon_ATK[monCounter])+5;
+            fread(dataset, sizeof(char), 3, txtData);
+            Mon_ATK[monCounter] = 2*atoi(dataset)+5;
 
-            for (int dataCounter = 0; dataCounter < 3; dataCounter++) //Assign DEF
-                dataset[dataCounter] = getc(txtData);
-            Mon_DEF[monCounter] = 100*(dataset[0] - '0') + 10*(dataset[1] - '0') + (dataset[2] - '0');
-            Mon_DEF[monCounter] = 2*(Mon_DEF[monCounter])+5;
+            fread(dataset, sizeof(char), 3, txtData);
+            Mon_DEF[monCounter] = 2*atoi(dataset)+5;
 
-            for (int dataCounter = 0; dataCounter < 3; dataCounter++) //Assign SPA
-                dataset[dataCounter] = getc(txtData);
-            Mon_SPA[monCounter] = 100*(dataset[0] - '0') + 10*(dataset[1] - '0') + (dataset[2] - '0');
-            Mon_SPA[monCounter] = 2*(Mon_SPA[monCounter])+5;
+            fread(dataset, sizeof(char), 3, txtData);
+            Mon_SPA[monCounter] = 2*atoi(dataset)+5;
 
-            for (int dataCounter = 0; dataCounter < 3; dataCounter++) //Assign SPD
-                dataset[dataCounter] = getc(txtData);
-            Mon_SPD[monCounter] = 100*(dataset[0] - '0') + 10*(dataset[1] - '0') + (dataset[2] - '0');
-            Mon_SPD[monCounter] = 2*(Mon_SPD[monCounter])+5;
+            fread(dataset, sizeof(char), 3, txtData);
+            Mon_SPD[monCounter] = 2*atoi(dataset)+5;
 
-            for (int dataCounter = 0; dataCounter < 3; dataCounter++) //Assign SPE
-                dataset[dataCounter] = getc(txtData);
-            Mon_SPE[monCounter] = 100*(dataset[0] - '0') + 10*(dataset[1] - '0') + (dataset[2] - '0'); //No need to convert speed
+            fread(dataset, sizeof(char), 3, txtData);
+            Mon_SPE[monCounter] = atoi(dataset); //No need to convert speed
 
             //TYPE ASSIGN NOW
             Mon_Type1[monCounter] = getc(txtData) - 48; //A = 65 in ASCII, turns into 10; 6 = ASCII 54, turns into 6
@@ -549,7 +526,7 @@ void dataAssign(int position) //0 = player 1, 6 = player 2
         //ASCII SPRITE
         for (int temp = 0; temp < 4; temp++) //4 = 4 lines
         {
-            for (int erasePointer = 0; Mon_Ascii[monCounter][temp][erasePointer] != 0 && erasePointer < 12; erasePointer++) //cleans content for subsequent matches
+            for (int erasePointer = 0; Mon_Ascii[monCounter][temp][erasePointer] != 0 && erasePointer < 12; erasePointer++) //cleans content from previous matches
                 Mon_Ascii[monCounter][temp][erasePointer] = 0;
             char txtCharacter;
             strcpy(Mon_Ascii[monCounter][temp], "");
