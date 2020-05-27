@@ -4,10 +4,14 @@
 #include "string.h"
 #include "windows.h"
 
+#define MON_COUNT 6
+//MON_COUNT = number of mons each player equally has. <MON_COUNT = player 1, >=MON_COUNT = player 2
+#define TOTALMONS (MON_COUNT * 2)
+
 int player_Faint[2], current_Mon[2]; //[0] = Player 1, //[1] = Player 2. player loses when player_Faint becomes 6
-int players_Mons[12], Mon_HPleft[12], Mon_HP[12], Mon_ATK[12], Mon_DEF[12], Mon_SPA[12], Mon_SPD[12], Mon_SPE[12], Mon_Type1[12], Mon_Type2[12];
-char Mon_Names[12][11], Mon_Ascii[12][4][13]; //Mon_Names=10 characters max; Mon_Ascii=12 characters per line, 4 lines
-int Mon_SpriteColors[12][4];
+int players_Mons[TOTALMONS], Mon_HPleft[TOTALMONS], Mon_HP[TOTALMONS], Mon_ATK[TOTALMONS], Mon_DEF[TOTALMONS], Mon_SPA[TOTALMONS], Mon_SPD[TOTALMONS], Mon_SPE[TOTALMONS], Mon_Type1[TOTALMONS], Mon_Type2[TOTALMONS];
+char Mon_Names[TOTALMONS][11], Mon_Ascii[TOTALMONS][4][13]; //Mon_Names=10 characters max; Mon_Ascii=12 characters per line, 4 lines
+int Mon_SpriteColors[TOTALMONS][4];
 int knockout_Flag; //0 or 1 = correspondent player mon got trashed out, 2 = regular turn
 int type_Chart[18][18];
 HANDLE color_Text;
@@ -116,7 +120,7 @@ void printHPBar(int pointer) //prints the colored HP bar
             printf(" ");
         SetConsoleTextAttribute(color_Text, 7); //COLORLESS
     }
-    if (pointer < 6 || Mon_HPleft[pointer] != Mon_HP[pointer]) //prevents double line skip
+    if (pointer < MON_COUNT || Mon_HPleft[pointer] != Mon_HP[pointer]) //prevents double line skip
         printf("\n");
 }
 
@@ -142,7 +146,7 @@ void printHPNumber(int pointer) //example prints "HP 100/100"
 
 void printWhiteBall(int counter)
 {
-    for (int i = 0; i < 6 - counter; i++)
+    for (int i = 0; i < MON_COUNT - counter; i++)
         printf(" O");
 }
 
@@ -157,13 +161,13 @@ void printASCII(int pointer)
 {
     for (int temp = 0; temp < 4; temp++)
     {
-        if (pointer >= 6) //>=6 = player 2
+        if (pointer >= MON_COUNT) //>=MON_COUNT = player 2
             printf("%*s", 24, "");
         SetConsoleTextAttribute(color_Text, Mon_SpriteColors[pointer][temp]);
         printf("%s", Mon_Ascii[pointer][temp]);
         /*'\s' is its own character, so the console cursor could make an additional line break for player 2's sprites
         This workaround forces a line break for player 1 instead*/
-        if (pointer < 6)
+        if (pointer < MON_COUNT)
         {
             int lenghtString = strlen(Mon_Ascii[pointer][temp]);
             if (lenghtString == 12 && Mon_Ascii[pointer][temp][lenghtString - 1] != '\n')
@@ -183,7 +187,7 @@ void screenRefresh() //My "cls"
     printf("\n%*s", 23, "");
     printHPBar(current_Mon[1]); //Colored HP bar
     printf("%*s", 23, "");
-    printRedBall(6 - player_Faint[1]);
+    printRedBall(MON_COUNT - player_Faint[1]);
     printWhiteBall(player_Faint[1]);
     printf("\n");
     printASCII(current_Mon[1]);
@@ -193,7 +197,7 @@ void screenRefresh() //My "cls"
     printf("\n");
     printHPBar(current_Mon[0]);
     printWhiteBall(player_Faint[0]);
-    printRedBall(6 - player_Faint[0]);
+    printRedBall(MON_COUNT - player_Faint[0]);
 
     //todo rewrite tis so the screen doesn't flicker (also cls is just not elegant)
 }
@@ -243,9 +247,9 @@ void attackMon(int atkingMon, int defendingMon)
     Modifiers = numTargets * Weather * Badge * Crit * random(0.85 to 1.00) * STAB * TypeEffct * Burn * sizeMult
     Level is 100, AttackDamage is 70, STAB is 1.5, TypeEffct and random varies
     Ignores numTargets, Weather, Badge, Crit(!), Burn, sizeMult*/
-    int randomvalue = 85 + rand() % 16;
-    //printf("\nappliedATK = %d, appliedDEF = %d, randomvalue = %d", appliedATK, appliedDEF, randomvalue);
-    float damageFl = ((58.8 * appliedATK / appliedDEF) + 2) * randomvalue * 0.015 * typeMult;
+    int randomVal = 85 + rand() % 16;
+    //printf("\nappliedATK = %d, appliedDEF = %d, randomVal = %d", appliedATK, appliedDEF, randomvalue);
+    float damageFl = ((58.8 * appliedATK / appliedDEF) + 2) * randomVal * 0.015 * typeMult;
     int damageInt = damageFl;
     if (damageInt == 0)
         damageInt = 1;
@@ -280,12 +284,12 @@ void attackMon(int atkingMon, int defendingMon)
 
 void randomSend(int pointer)
 {
-    if (player_Faint[pointer] != 6)
+    if (player_Faint[pointer] != MON_COUNT)
     {
-        int convertedPointer = pointer * 6;
+        int convertedPointer = pointer * MON_COUNT;
         int randomSnd;
         do{
-            randomSnd = convertedPointer + rand() % 6;
+            randomSnd = convertedPointer + rand() % MON_COUNT;
         }while (Mon_HPleft[randomSnd] == 0);
 
         current_Mon[pointer] = randomSnd;
@@ -351,9 +355,9 @@ char betChoice()
 
 void monAssign(int position)
 {
-    int tempArray[6];
+    int tempArray[MON_COUNT];
     //Assigning Mons to Chosen Trainer
-    for (int count = 0; count < 6; count++)
+    for (int count = 0; count < MON_COUNT; count++)
     {
         int random_Mon = 1 + rand() % 151;
 
@@ -375,10 +379,10 @@ void monAssign(int position)
     {
       return ( *(int*)a - *(int*)b );
     }
-    qsort(tempArray, 6, sizeof(int), compara);
+    qsort(tempArray, MON_COUNT, sizeof(int), compara);
 
     int tempIndex = 0;
-    for (int count = position; count < position + 6; count++)
+    for (int count = position; count < position + MON_COUNT; count++)
     {
         players_Mons[count] = tempArray[tempIndex];
         tempIndex++;
@@ -388,7 +392,7 @@ void monAssign(int position)
 void playersGetMons()
 {
     monAssign(0);
-    monAssign(6);
+    monAssign(MON_COUNT);
 }
 
 void dataAssign(int position) //0 = player 1, 6 = player 2
@@ -405,7 +409,7 @@ void dataAssign(int position) //0 = player 1, 6 = player 2
     {
         char c;
         int lineCounter = 1;
-        for (int monCounter = position; monCounter < position + 6; monCounter++)
+        for (int monCounter = position; monCounter < position + MON_COUNT; monCounter++)
         {
             fseek(txtData, ((players_Mons[monCounter] - 1) * 32), SEEK_SET);
 
@@ -445,7 +449,7 @@ void dataAssign(int position) //0 = player 1, 6 = player 2
 
         //printing mon names
         int indexCounter = 0;
-        for (int monCounter = position; monCounter < position + 6; monCounter++)
+        for (int monCounter = position; monCounter < position + MON_COUNT; monCounter++)
         {
             SetConsoleTextAttribute(color_Text, 15);
             printf("%s", Mon_Names[monCounter]);
@@ -474,7 +478,7 @@ void dataAssign(int position) //0 = player 1, 6 = player 2
     }
 
     int lineCounter = 0;
-    for (int monCounter = position; monCounter < position + 6; monCounter++)
+    for (int monCounter = position; monCounter < position + MON_COUNT; monCounter++)
     {
         char c;
         int asciiFinder = (players_Mons[monCounter] - 1) * 5; //5 lines of data for each mon
@@ -556,7 +560,7 @@ void monsGetData()
     SetConsoleTextAttribute(color_Text, 12);
     printf("\nPLAYER 2\n");
     SetConsoleTextAttribute(color_Text, 7);
-    dataAssign(6);
+    dataAssign(MON_COUNT);
 }
 
 void typeChart()
@@ -627,22 +631,17 @@ void main()
         printf("\nPlayer 1 sent out %s!\nPlayer 2 sent out %s!", Mon_Names[current_Mon[0]], Mon_Names[current_Mon[1]]);
         getch();
 
-        while(player_Faint[0] != 6 && player_Faint[1] != 6) //while both players have mons left
+        while(player_Faint[0] != MON_COUNT && player_Faint[1] != MON_COUNT) //while both players have mons left
             attackTurn();
 
         screenRefresh();
+
         char idWinner;
-        printf("\nEND OF MATCH.");
-        if (player_Faint[1] == 6)
-        {
+        if (player_Faint[1] == MON_COUNT)
             idWinner = '1';
-            printf("\nPLAYER 1 WON!");
-        }
         else
-        {
             idWinner = '2';
-            printf("\nPLAYER 2 WON!");
-        }
+        printf("\nEND OF MATCH.\nPLAYER %c WON!", idWinner);
 
         if (idWinner == player_Bet)
             printf("\nCongrats, you bet right!");
