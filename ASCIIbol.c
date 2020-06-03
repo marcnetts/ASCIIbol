@@ -309,14 +309,12 @@ void attackTurn()
     if ((knockout_Flag) == 2)
     {
         int fasterMon;
-        if (Mon_SPE[current_Mon[0]] > Mon_SPE[current_Mon[1]])
-            fasterMon = 0;
-        else if (Mon_SPE[current_Mon[0]] < Mon_SPE[current_Mon[1]])
-            fasterMon = 1;
-        else
+        if (Mon_SPE[current_Mon[0]] == Mon_SPE[current_Mon[1]])
             fasterMon = rand() % 2;
+        else
+            fasterMon = (Mon_SPE[current_Mon[0]] < Mon_SPE[current_Mon[1]]);
 
-        int slowerMon = abs(fasterMon - 1); //(abs -1) switces between 0 to 1 and vice-versa
+        int slowerMon = (fasterMon == 0); //fasterMon == 0 switches between 0 to 1
         attackMon(fasterMon, slowerMon);
         //printf("\nspeed_Check = %d", fasterMon);
         //printf("\nEita...\nMon_HPleft[current_Mon[fasterMon]] = %d\nMon_HPleft[current_Mon[slowerMon]] = %d\ntesteAbs = %d", Mon_HPleft[current_Mon[speed_Check]], Mon_HPleft[current_Mon[abs(speed_Check) - 1]], testeAbs);
