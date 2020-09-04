@@ -264,7 +264,7 @@ void attackMon(int atkingMon, int defendingMon)
         printf("\n%s has fainted!", Mon_Names[current_Mon[defendingMon]]);
 
     printf("\nPress any key to continue...");
-    getch();
+    _getch();
 }
 
 void randomSend(int pointer)
@@ -317,7 +317,7 @@ void attackTurn()
         screenRefresh();
         printf("\nPlayer %d sends out %s!", knockout_Flag + 1, Mon_Names[current_Mon[knockout_Flag]]);
         knockout_Flag = 2;
-        getch();
+        _getch();
     }
 }
 
@@ -612,7 +612,7 @@ void main()
 
         screenRefresh(); //THIS IS THE SCREEN
         printf("\nPlayer 1 sent out %s!\nPlayer 2 sent out %s!", Mon_Names[current_Mon[0]], Mon_Names[current_Mon[1]]);
-        getch();
+        _getch();
 
         while(player_Faint[0] != MON_COUNT && player_Faint[1] != MON_COUNT) //while both players have mons left
             attackTurn();
@@ -645,5 +645,5 @@ void main()
     }while (exit == '1');
 
     printf("\n\nPress any key to exit...");
-    getch();
+    _getch();
 }
