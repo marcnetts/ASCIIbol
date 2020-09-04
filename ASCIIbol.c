@@ -124,24 +124,9 @@ void printHPBar(int pointer) //prints the colored HP bar
         printf("\n");
 }
 
-void printHPVal(int HP) //example prints "100" or "  5"
-{
-    if (HP < 100)
-    {
-        printf(" ");
-        if (HP < 10)
-            printf(" ");
-    }
-    printf("%d", HP);
-}
-
 void printHPNumber(int pointer) //example prints "HP 100/100"
 {
-    //printf("HP %d / %d\n", Mon_HPleft[pointer], Mon_HP[pointer]);
-    printf("HP ");
-    printHPVal(Mon_HPleft[pointer]);
-    printf(" / ");
-    printHPVal(Mon_HP[pointer]);
+    printf("HP %3d / %3d", Mon_HPleft[pointer], Mon_HP[pointer]);
 }
 
 void printWhiteBall(int counter)
